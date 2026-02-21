@@ -5,12 +5,12 @@
 
 namespace main_player::core::stream
 {
-    class Application
+    class application
     {
     public:
-        Application() = delete;
+        application() = delete;
 
-        ~Application() = delete;
+        ~application() = delete;
 
         [[nodiscard]]
         static std::string path_to_application();

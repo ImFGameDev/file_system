@@ -1,8 +1,7 @@
 #include <map>
 #include <vector>
-#include <boost/json/conversion.hpp>
-
-#include "StreamAssembler.h"
+#include <string>
+#include <boost/json.hpp>
 
 namespace boost::json
 {
@@ -29,8 +28,7 @@ namespace boost::json
     void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const std::vector<std::string>& vec)
     {
         boost::json::array arr;
-
-        for (auto const& str : vec) arr.push_back(str);
+        for (auto const& str : vec) arr.push_back(str.c_str());
 
         jv = arr;
     }
@@ -69,7 +67,7 @@ namespace boost::json
     {
         boost::json::object obj;
 
-        for (auto const& [key, voidPtr] : voidMap) obj[key] = value_from(*voidPtr);
+        for (auto const& [key, voidPtr] : voidMap) obj[key] = value_from(voidPtr);
 
         jv = obj;
     }

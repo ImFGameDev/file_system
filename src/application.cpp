@@ -1,17 +1,16 @@
 #include <filesystem>
 #include <linux/limits.h>
 #include <unistd.h>
+#include <debug_system.h>
 
-#include "Application.h"
-
-#include "assembler/StreamAssembler.h"
-#include "src/core/debug/DebugSystem.h"
+#include "../include/application.h"
+#include "../include/assembler/StreamAssembler.h"
 
 namespace main_player::core::stream
 {
     //Public:
     [[nodiscard]]
-    std::string Application::path_to_application()
+    std::string application::path_to_application()
     {
         std::string path;
 
@@ -38,12 +37,12 @@ namespace main_player::core::stream
     }
 
     [[nodiscard]]
-    std::vector<std::string> Application::get_directory_arr(const std::string& path, const std::string& file)
+    std::vector<std::string> application::get_directory_arr(const std::string& path, const std::string& file)
     {
         std::vector<std::string> directory_config;
 
         auto full_path = path_to_application() + "/" + path + file;
-        if (StreamAssembler::read_file(full_path, directory_config))
+        if (stream_assembler::read_file(full_path, directory_config))
         {
             std::vector<std::string> directory;
             directory.reserve(directory_config.size());
@@ -56,17 +55,17 @@ namespace main_player::core::stream
         return std::vector<std::string>();
     }
 
-    std::vector<std::string> Application::get_json_files(const std::string& path, const std::string& extension)
+    std::vector<std::string> application::get_json_files(const std::string& path, const std::string& extension)
     {
         std::vector<std::string> json_files;
 
         try
         {
             if (!std::filesystem::exists(path))
-                debug::DebugSystem::error("application", "Path not found: " + path);
+                main_player::core::debug::debug_system::error("application", "Path not found: " + path);
 
             if (!std::filesystem::is_directory(path))
-                debug::DebugSystem::error("application", "Path not directory: " + path);
+                main_player::core::debug::debug_system::error("application", "Path not directory: " + path);
 
             for (const auto& entry : std::filesystem::directory_iterator(path))
             {
@@ -88,7 +87,7 @@ namespace main_player::core::stream
         }
         catch (const std::filesystem::filesystem_error& ex)
         {
-            debug::DebugSystem::error("application", "Error file system: " + std::string(ex.what()));
+            main_player::core::debug::debug_system::error("application", "Error file system: " + std::string(ex.what()));
         }
 
         return json_files;
