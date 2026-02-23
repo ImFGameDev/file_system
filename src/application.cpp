@@ -4,7 +4,7 @@
 #include <debug_system.h>
 
 #include "../include/application.h"
-#include "../include/assembler/StreamAssembler.h"
+#include "../include/assembler/stream_assembler.h"
 
 namespace main_player::core::stream
 {
