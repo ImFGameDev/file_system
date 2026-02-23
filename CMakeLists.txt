@@ -15,7 +15,6 @@ FetchContent_MakeAvailable(debug_system)
 
 add_library(${PROJECT_NAME}
         src/application.cpp
-        src/stream_assembler.cpp
         src/json_specializations.cpp
 )
 
