@@ -8,10 +8,13 @@
 
 namespace main_player::core::stream
 {
+	using str = std::string;
+	using logger = main_player::core::debug::debug_system;
+
 	//Public:
-	[[nodiscard]] std::string application::path_to_application()
+	[[nodiscard]] str application::path_to_application()
 	{
-		std::string path;
+		str path;
 
 #ifdef _WIN32
 			char buffer[MAX_PATH];
@@ -30,21 +33,19 @@ namespace main_player::core::stream
 
 		std::size_t found = path.find_last_of("/\\");
 
-		if (found != std::string::npos) path = path.substr(0, found);
+		if (found != str::npos) path = path.substr(0, found);
 
 		return path;
 	}
 
-	[[nodiscard]] std::vector<std::string> application::get_directory_arr(
-		const std::string& path, const std::string& file
-	)
+	[[nodiscard]] std::vector<str> application::get_directory_arr(const str& path, const str& file)
 	{
-		std::vector<std::string> directory_config;
+		std::vector<str> directory_config;
+		std::vector<str> directory;
 
 		auto full_path = path_to_application() + "/" + path + file;
 		if (stream_assembler::read_file(full_path, directory_config))
 		{
-			std::vector<std::string> directory;
 			directory.reserve(directory_config.size());
 
 			for (const auto& dir: directory_config) directory.push_back(path + dir);
@@ -52,26 +53,22 @@ namespace main_player::core::stream
 			return directory;
 		}
 
-		return std::vector<std::string>();
+		return directory;
 	}
 
-	std::vector<std::string> application::get_json_files(const std::string& path, const std::string& extension)
+	std::vector<str> application::get_json_files(const str& path, const str& extension)
 	{
-		std::vector<std::string> json_files;
+		std::vector<str> json_files;
 
 		try
 		{
-			if (!std::filesystem::exists(path))
-				main_player::core::debug::debug_system::error("application", "Path not found: " + path);
-
-			if (!std::filesystem::is_directory(path))
-				main_player::core::debug::debug_system::error("application", "Path not directory: " + path);
+			if (!std::filesystem::exists(path)) logger::error("application", "path not found: " + path);
+			if (!std::filesystem::is_directory(path)) logger::error("application", "path not directory: " + path);
 
 			for (const auto& entry: std::filesystem::directory_iterator(path))
-			{
 				if (std::filesystem::is_regular_file(entry.status()))
 				{
-					std::string file_extension = entry.path().extension().string();
+					str file_extension = entry.path().extension().string();
 
 					if (std::equal(extension.begin(), extension.end(), file_extension.begin(), file_extension.end(),
 					               [](char a, char b)
@@ -82,12 +79,10 @@ namespace main_player::core::stream
 						json_files.push_back(entry.path().filename().string());
 					}
 				}
-			}
 		}
 		catch (const std::filesystem::filesystem_error& ex)
 		{
-			main_player::core::debug::debug_system::error("application",
-			                                              "Error file system: " + std::string(ex.what()));
+			logger::error("application", "error file system: " + str(ex.what()));
 		}
 
 		return json_files;
