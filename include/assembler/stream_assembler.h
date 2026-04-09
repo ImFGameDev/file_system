@@ -16,11 +16,11 @@ namespace main_player::core::stream
 	{
 	private:
 		template<typename T>
-		static bool load(const str& filePath, T& output)
+		static bool load(const str& path, T& output)
 		{
 			try
 			{
-				std::ifstream file(filePath);
+				std::ifstream file(path);
 
 				if (!file.is_open()) return false;
 
@@ -47,6 +47,22 @@ namespace main_player::core::stream
 		stream_assembler() = delete;
 
 		~stream_assembler() = delete;
+
+		template<typename T>
+		static void write_file(const str& path, const T& data)
+		{
+			try
+			{
+				std::ofstream file(path);
+				boost::json::value jv = boost::json::value_from(data);
+
+				file << boost::json::serialize(jv);
+			}
+			catch (const std::exception& e)
+			{
+				logger::error("stream_assembler", "file write error: " + std::string(e.what()));
+			}
+		}
 
 		template<typename T>
 		static bool parce_to_object(const str& stream_data, T& output)
@@ -88,14 +104,14 @@ namespace main_player::core::stream
 		}
 
 		template<typename T>
-		static bool read_file(const str& filePath, T& output)
+		static bool read_file(const str& path, T& output)
 		{
 			try
 			{
-				std::ifstream file(filePath);
+				std::ifstream file(path);
 				if (!file.is_open())
 				{
-					logger::error("stream_assembler", "cannot open file: " + filePath);
+					logger::error("stream_assembler", "cannot open file: " + path);
 					return false;
 				}
 
@@ -113,51 +129,53 @@ namespace main_player::core::stream
 			}
 			catch (const std::exception& e)
 			{
-				logger::error("stream_assembler", "error: " + str(e.what()) + "\n" + filePath);
+				logger::error("stream_assembler", "error: " + str(e.what()) + "\n" + path);
 				return false;
 			}
 		}
 
 		template<typename T>
-		static bool find_read_file(const str filePath[], const std::size_t& length, const str& name, T& output)
+		static bool find_read_file(const str paths[], const std::size_t& length, const str& name, T& output)
 		{
-			for (int i = 0; i < length; i++) if (load(filePath[i] + name, output)) return true;
+			for (int i = 0; i < length; i++) if (load(paths[i] + name, output)) return true;
 
-			str paths{};
+			str log_paths{};
 
-			for (int i = 0; i < length; i++) paths += filePath[i] + name + "\n";
+			for (int i = 0; i < length; i++) log_paths += paths[i] + name + "\n";
 
-			logger::error("stream_assembler", "cannot found file:\n" + paths);
+			logger::error("stream_assembler", "cannot found file:\n" + log_paths);
 			return false;
 		}
 
 		template<typename T>
-		static bool find_read_file(const std::vector<str>& filePath, const str& name, T& output)
+		static bool find_read_file(const std::vector<str>& paths, const str& name, T& output)
 		{
-			for (const auto& path: filePath) if (load(path + name, output)) return true;
+			for (const auto& path: paths) if (load(path + name, output)) return true;
 
-			str paths{};
+			str log_paths{};
 
-			for (const auto& path: filePath) paths += path + name + "\n";
+			for (const auto& path: paths) log_paths += path + name + "\n";
 
-			logger::error("stream_assembler", "cannot found file:\n" + paths);
+			logger::error("stream_assembler", "cannot found file:\n" + log_paths);
 			return false;
 		}
 
-		template<typename T>
-		static void write_file(const str& filePath, const T& data)
+		static bool find_load_str(const std::vector<str>& paths, const str& name, str& output)
 		{
-			try
+			for (const auto& path: paths)
 			{
-				std::ofstream file(filePath);
-				boost::json::value jv = boost::json::value_from(data);
+				std::ifstream file(path + name);
 
-				file << boost::json::serialize(jv);
+				if (file.is_open())
+				{
+					output = str(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+
+					file.close();
+					return true;
+				}
 			}
-			catch (const std::exception& e)
-			{
-				logger::error("stream_assembler", "file write error: " + std::string(e.what()));
-			}
+
+			return false;
 		}
 	};
 }
